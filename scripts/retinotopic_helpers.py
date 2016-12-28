@@ -56,7 +56,7 @@ for i_th, thetas in enumerate(theta_starts):
         bin_code = "{:s}{:s}".format(ecc_bit, angle_bit)
         code_map[bin_code] = int(bin_code, 2)
 
-## PLOT STUFF
+# PLOT STUFF
 polax_size = 4  # inches square
 
 global th_plot, r_plot, w_plot, b_plot, val_plot
@@ -89,6 +89,7 @@ def polax_bardata_append(hemi_bit, ecc_ind, ang_ind, val):
     b_plot.append(radii[ecc_ind][0])
     val_plot.append(val)
 
+
 def polax_bardata_setcols(ax, cmap=cm.hot, normalizer=1.):
     global th_plot, r_plot, w_plot, b_plot, val_plot
     ax.set_theta_zero_location("N")
@@ -96,6 +97,7 @@ def polax_bardata_setcols(ax, cmap=cm.hot, normalizer=1.):
     for val, bar in zip(val_plot, bars):
         cval = polax_get_colour(val, cmap=cmap, normalizer=normalizer)
         bar.set_facecolor(cval)
+
 
 def polax_get_colour(val, cmap=cm.hot, normalizer=1.):
     cval = val / normalizer if val is not None else 0.0
@@ -121,9 +123,8 @@ def create_LUT():
         for jj, rlim in enumerate(radii):
 
             v = 1 - (jj / len(radii)) / 2
-            col = colorsys.hsv_to_rgb(h,s,v)
+            col = colorsys.hsv_to_rgb(h, s, v)
             c_plot.extend([col, col])
-
 
     for ii, (col, bin_code) in enumerate(zip(c_plot[::2], code_map.keys())):
         r, g, b = np.round(np.array(col)*255)
@@ -135,15 +136,17 @@ def create_LUT():
     with open('RMLUT.txt', 'wt') as fp:
         fp.write(LUT)
 
+
 def get_ecc_ang_inds(lab_name, n_radii=len(radii),
                      n_angles=len(theta_starts)):
     code_int = int(lab_name.split('-')[0].split('RM')[1])
     bin_code = bin(code_int)[2:]
-    bin_code = (n_radii + n_angles - len(bin_code)) * '0' + bin_code  # pad zeros...
+    bin_code = (n_radii + n_angles - len(bin_code)) * '0' + bin_code  # pad
     ups = [m.start() for m in re.finditer('1', bin_code)]
     ecc_ind = ups[0]
     ang_ind = ups[1] - n_radii
     return ecc_ind, ang_ind
+
 
 def get_RM_labels(subject, regions=['V1', 'V2', 'V3'], hemis=['lh', 'rh'],
                   subjects_dir=None, verbose=None):
@@ -151,11 +154,9 @@ def get_RM_labels(subject, regions=['V1', 'V2', 'V3'], hemis=['lh', 'rh'],
     for reg in regions:
         labels[reg] = OrderedDict()
         for hemi in hemis:
-            labels[reg][hemi] = read_labels_from_annot(subject,
-                                                  parc='RM.{:s}'.format(reg),
-                                                  subjects_dir=subjects_dir,
-                                                  hemi=hemi, verbose=verbose,
-                                                  regexp='RM')
+            labels[reg][hemi] = read_labels_from_annot(
+                subject, parc='RM.{:s}'.format(reg), subjects_dir=subjects_dir,
+                hemi=hemi, verbose=verbose, regexp='RM')
     return labels
 
 
@@ -228,6 +229,7 @@ def prepare_gain(fwd, ch_type='meg', exclude=[], verbose=None):
                            'mne-python developers')
     return fwd
 
+
 def pick_gain_vertices(fwd, label):
     """Find the indices to the gain matrix corresponding to label vertices
 
@@ -262,6 +264,7 @@ def pick_gain_vertices(fwd, label):
     assert(n_locations == len(lab_verts[0]) + len(lab_verts[1]))
 
     return gain_idx
+
 
 def patch_sensitivity(fwd, labels):
     """Compute cancellation indices for cortical sources.
@@ -324,12 +327,14 @@ def patch_sensitivity(fwd, labels):
     return dict(ci=ci, tot_sens=alpha, w_sens=w_sens, mean_sens=mean_sens,
                 sigvec=sigvec)
 
+
 def find_labels_in_list(lablist, labname):
     '''Return a list of labels matching a name.'''
     labels = [l for l in lablist if labname in l.name]
     if len(labels) == 0:
         raise RuntimeError('No such label name found: {}'.format(labname))
     return labels
+
 
 def get_2D_connectivity_matrix_value(Cmat, reflab, trglab):
     n_hemi = Cmat.shape[0] // 2  # square
@@ -381,6 +386,7 @@ def _stc_from_labels(labels, amp=1e-10, tmin=0.0, tstep=0.001):
 
     return stc
 
+
 def plot_stc_topomap(fwd_fixed, stc, info, cov=None, snr=np.inf,
                      axes=None, plot_params=None, title=None):
     if plot_params is None:
@@ -394,6 +400,7 @@ def plot_stc_topomap(fwd_fixed, stc, info, cov=None, snr=np.inf,
 
     evoked = simulate_evoked(fwd_fixed, stc, info, cov=cov, snr=snr)
     evoked.plot_topomap(time_format=title, axes=axes, **plot_params)
+
 
 def plot_region_interaction_topomap(lablist, fwd_fixed, info, axes=None,
                                     fig=None):
