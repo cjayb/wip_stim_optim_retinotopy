@@ -353,6 +353,14 @@ def get_2D_connectivity_matrix_value(Cmat, reflab, trglab):
 
 def _stc_from_labels(labels, amp=1e-10, tmin=0.0, tstep=0.001):
     """Create an stc with timepoints = len(labels)
+
+    Parameters:
+    -----------
+    labels : (Label, BiHemiLabel) | list of them
+        Labels to forward model
+    amp : float or np.array
+        Time courses for the labels (len(amps) == len(labels)).
+        If amps is np.array, it must have shape: n_labels x n( > 1)
     """
     if not isinstance(labels, list):
         if not isinstance(labels, (Label, BiHemiLabel)):
@@ -376,11 +384,22 @@ def _stc_from_labels(labels, amp=1e-10, tmin=0.0, tstep=0.001):
     all_vertices = [np.unique(v) for v in all_vertices]
     n_src = sum([len(v) for v in all_vertices])
 
-    data = np.zeros((n_src, len(labels)))
-    for idt, verts in enumerate(vertices):
+    if isinstance(amp, float):
+        data = np.zeros((n_src, len(labels)))
+    elif isinstance(amp, np.ndarray):
+        data = np.zeros((n_src, amp.shape[1]))
+
+    for id_lab, verts in enumerate(vertices):
         for hemi in [0, 1]:
             idx = np.where(np.in1d(all_vertices[hemi], verts[hemi]))[0]
-            data[idx + hemi * len(all_vertices[0]), idt] = amp
+            cur_idxs = idx + hemi * len(all_vertices[0])
+            if isinstance(amp, float):
+                data[cur_idxs, id_lab] = amp
+            elif isinstance(amp, np.ndarray):
+                if len(amp) != len(labels):  # waveform no. no matches labels
+                    raise ValueError('No amp waveforms must match no. labels.')
+                if len(cur_idxs) > 0:  # zero if none in this hemi
+                    data[cur_idxs] = amp[id_lab] / len(cur_idxs)
 
     stc = SourceEstimate(data, vertices=all_vertices, tmin=tmin, tstep=tstep)
 
